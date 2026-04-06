@@ -1,0 +1,15 @@
+transformers
+torch
+peft
+accelerate
+datasets
+sentencepiece
+evaluate
+scikit-learn
+pandas
+numpy
+bitsandbytes
+sacrebleu
+fast-langdetect
+langdetect
+huggingface_hub

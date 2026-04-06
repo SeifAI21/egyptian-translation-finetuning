@@ -1,0 +1,20 @@
+# Environments
+venv/
+env/
+.venv/
+__pycache__/
+*.pyc
+
+# Local Data / Cache
+.cache/
+.datasets/
+
+# Output Models and Checkpoints
+outputs_*/
+full_model_*/
+*.safetensors
+*.bin
+*.pt
+
+# Jupyter
+.ipynb_checkpoints/
