@@ -51,8 +51,12 @@ def _match_token_seq(ids, pos, pattern):
     return ids[pos : pos + len(pattern)] == pattern
 
 def get_preprocess_fn(tokenizer, max_length):
-    THINK_OPEN_IDS  = tokenizer.encode("<think>",  add_special_tokens=False)
-    THINK_CLOSE_IDS = tokenizer.encode("</think>", add_special_tokens=False)
+    if config.MASK_REASONING_TOKENS:
+        THINK_OPEN_IDS  = tokenizer.encode("<think>",  add_special_tokens=False)
+        THINK_CLOSE_IDS = tokenizer.encode("</think>", add_special_tokens=False)
+    else:
+        THINK_OPEN_IDS  = []
+        THINK_CLOSE_IDS = []
 
     def preprocess(examples):
         input_ids_list      = []
@@ -99,24 +103,30 @@ def get_preprocess_fn(tokenizer, max_length):
             prompt_len = len(prompt_only_enc["input_ids"])
 
             labels     = [-100] * len(full_ids)
-            i          = prompt_len
-            in_thinking = False
+            
+            if config.MASK_REASONING_TOKENS:
+                i          = prompt_len
+                in_thinking = False
 
-            while i < len(full_ids):
-                if _match_token_seq(full_ids, i, THINK_OPEN_IDS):
-                    in_thinking = True
-                    i += len(THINK_OPEN_IDS)
-                    continue
+                while i < len(full_ids):
+                    if _match_token_seq(full_ids, i, THINK_OPEN_IDS):
+                        in_thinking = True
+                        i += len(THINK_OPEN_IDS)
+                        continue
 
-                if in_thinking and _match_token_seq(full_ids, i, THINK_CLOSE_IDS):
-                    in_thinking = False
-                    i += len(THINK_CLOSE_IDS)
-                    continue
+                    if in_thinking and _match_token_seq(full_ids, i, THINK_CLOSE_IDS):
+                        in_thinking = False
+                        i += len(THINK_CLOSE_IDS)
+                        continue
 
-                if not in_thinking:
+                    if not in_thinking:
+                        labels[i] = full_ids[i]
+
+                    i += 1
+            else:
+                # Normal SFT Masking (for Nile-Chat, Gemma, etc.)
+                for i in range(prompt_len, len(full_ids)):
                     labels[i] = full_ids[i]
-
-                i += 1
 
             padding_length = max_length - len(full_ids)
             input_ids      = full_ids + [tokenizer.pad_token_id] * padding_length

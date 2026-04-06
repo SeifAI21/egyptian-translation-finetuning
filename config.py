@@ -28,6 +28,7 @@ LOGGING_STEPS = 100
 
 MAX_SEQ_LENGTH = 256
 SEED = 42
+MASK_REASONING_TOKENS = False  # True for Qwen3, False for normal models like Nile-Chat/Gemma
 
 # ==========================================
 # DATASET
